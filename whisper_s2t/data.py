@@ -162,18 +162,6 @@ class WhisperDataLoader:
             return signal_batch, prompt_batch, seq_len, seg_metadata
         else:
             return signal_batch, prompt_batch, seq_len
-            
-    def update_start_end(self,data):
-        for i in range(1, len(data)):
-            prev = data[i - 1]
-            curr = data[i]
-            if prev['end_time'] > curr['start_time']:
-                # Swap end_time of prev with start_time of curr
-                prev['end_time'], curr['start_time'] = curr['start_time'], prev['end_time']
-                # Update stitched_seg for both
-                prev['stitched_seg'][-1][-1] = prev['end_time']
-                curr['stitched_seg'][-1][0] = curr['start_time']
-        return data
     
     def get_segmented_audio_signal(self, start_ends, audio_signal, file_id, lang, task, initial_prompt, sr=16000):
 
@@ -209,8 +197,6 @@ class WhisperDataLoader:
                     'lang_code': lang
                 }
                 segmented_audio_signal.append((audio, prompt, initial_prompt_tokens, seq_len, seg_metadata))
-            if len(segmented_audio_signal)>0:
-                segmented_audio_signal= self.update_start_end(segmented_audio_signal)
         else:
             for st, et in start_ends:
                 audio = audio_signal[int(st*sr):int(et*sr)]
